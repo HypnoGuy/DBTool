@@ -13,7 +13,8 @@ public class Table {
     private Database database;
     private final String name;
     private final String collationName;
-    private final List<TableColumn> columns = new ArrayList<>();
+    private final List<Column> columns = new ArrayList<>();
+    private final List<Constraint> constraints = new ArrayList<>();
 
     // Constructors
     public Table(Database database, String tableName, String collationName) {
@@ -29,7 +30,47 @@ public class Table {
     public Database getDatabase() { return database; }
     public String getName() { return name; }
     public String getCollationName() { return collationName; }
-    public List<TableColumn> getTableColumns() { return columns; }
+    public List<Column> getTableColumns() { return columns; }
+    public List<Constraint> getConstraints() { return constraints; }
+
+    // Methods
+    public byte getMaxColumnNameLength() {
+
+        byte maxColumnNameLength = 0;
+
+        for(Column column : columns) {
+            if (column.getColumnName().length() > maxColumnNameLength)
+                maxColumnNameLength = (byte) column.getColumnName().length();
+        }
+
+        return maxColumnNameLength;
+    }
+
+    public String getColumnPrefix() {
+
+        boolean done = false;
+        byte charIndex = 1;
+        String prefix = "";
+
+        while(!done) {
+
+            prefix = columns.getFirst().getColumnName().substring(0, charIndex);
+
+            for (Column column : columns) {
+                if (!column.getColumnName().startsWith(prefix)) {
+                    done = true;
+                    break;
+                }
+            }
+
+            if(!done) {
+                charIndex++;
+                done = (charIndex > getMaxColumnNameLength());
+            }
+        }
+
+        return prefix.substring(0, prefix.length() - 1);
+    }
 
     // toString, equals and hashCode
     @Override

@@ -5,6 +5,7 @@ import com.mariadb.Connection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class Server {
 
@@ -45,5 +46,23 @@ public class Server {
         }
 
         return foundDatabase;
+    }
+
+    // toString, equals and hashCode
+    @Override
+    public String toString() {
+        return "Server{name='" + getHostName() + "'}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Server server = (Server) o;
+        return Objects.equals(getHostName(), server.getHostName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getHostName());
     }
 }

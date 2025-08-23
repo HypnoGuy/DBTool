@@ -66,6 +66,19 @@ public class Database {
         return foundTable;
     }
 
+    public View getView(String viewName) {
+        View foundView = null;
+
+        for (View view : views ) {
+            if (view.getName().equals(viewName)) {
+                foundView = view;
+                break;
+            }
+        }
+
+        return foundView;
+    }
+    
     // toString, equals and hashCode
     @Override
     public String toString() {

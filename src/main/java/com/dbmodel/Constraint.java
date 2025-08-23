@@ -1,19 +1,25 @@
 package com.dbmodel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Constraint {
 
+    // Class Variables
+    private static List<Constraint> constraints = new ArrayList<>();
+
     // Instance Variables
     private final String constraintName;
     private final String constraintType;
-    private final List<ConstraintColumn> constraintColumns;
+    private final List<ConstraintColumn> constraintColumns = new ArrayList<>();
 
     // Constructor
-    public Constraint(String constraintName, String constraintType, List<ConstraintColumn> constraintColumns) {
+    public Constraint(Table table, String constraintName, String constraintType) {
         this.constraintName = constraintName;
         this.constraintType = constraintType;
-        this.constraintColumns = constraintColumns;
+
+        constraints.add(this);
+        table.getConstraints().add(this);
     }
 
     // Getters and Setters

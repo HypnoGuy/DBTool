@@ -17,7 +17,8 @@ public  class SchemaLoader {
         LoadServer();
         LoadDatabases();
         LoadTablesAndViews();
-        LoadTableColumns();
+        LoadColumns();
+        LoadConstraints();
     }
 
     public static void LoadServer() {
@@ -38,7 +39,13 @@ public  class SchemaLoader {
     private static void LoadDatabases()  {
 
         try {
-            ResultSet results = connection.executeQuery("select * from information_schema.SCHEMATA;");
+            String SQLQuery = """
+                select *
+                from information_schema.SCHEMATA
+                where SCHEMA_NAME not in ('performance_schema', 'information_schema');
+                """;
+
+            ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
                 Database database = new Database(
                         connection,
@@ -57,6 +64,7 @@ public  class SchemaLoader {
         String SQLQuery = """
                     select *
                     from information_schema.TABLES
+                    where TABLE_SCHEMA not in ('performance_schema', 'information_schema')
                     order by TABLE_NAME
                     """;
 
@@ -88,17 +96,19 @@ public  class SchemaLoader {
         }
     }
 
-    private static void LoadTableColumns()  {
+    private static void LoadColumns()  {
 
         try {
             String SQLQuery = """
-                    select COLUMNS.*
+                    select
+                        TABLES.TABLE_TYPE,
+                        COLUMNS.*
                     from
                         information_schema.TABLES
                         inner join information_schema.COLUMNS
                             on COLUMNS.TABLE_SCHEMA = TABLES.TABLE_SCHEMA
                             and COLUMNS.TABLE_NAME = TABLES.TABLE_NAME
-                    where TABLES.TABLE_TYPE = 'BASE TABLE'
+                    where TABLES.TABLE_SCHEMA not in ('performance_schema', 'information_schema')
                     order by TABLES.TABLE_SCHEMA, TABLES.TABLE_NAME, COLUMNS.ORDINAL_POSITION
                     """;
 
@@ -106,10 +116,12 @@ public  class SchemaLoader {
             while(results.next()) {
 
                 String schemaName = results.getString("TABLE_SCHEMA");
-                String tableName = results.getString("TABLE_NAME");
+                String name = results.getString("TABLE_NAME");
+                String tableType = results.getString("TABLE_TYPE");
 
-                TableColumn column = new TableColumn(
-                        connection.getServer().getDatabase(schemaName).getTable(tableName),
+                Column column = new Column(
+                        connection.getServer().getDatabase(schemaName).getTable(name),
+                        connection.getServer().getDatabase(schemaName).getView(name),
                         results.getString("COLUMN_NAME"),
                         results.getString("COLUMN_TYPE"),
                         results.getString("DATA_TYPE"),
@@ -128,36 +140,28 @@ public  class SchemaLoader {
         }
     }
 
-    private static List<Constraint> LoadConstraints(Connection connection, String schemaName, String tableName)  {
+    private static List<Constraint> LoadConstraints()  {
 
         List<Constraint> Constraints = new ArrayList<>();
 
         try {
             String SQLQuery = """
                     select *
-                    from information_schema.TABLE_CONSTRAINTS
-                    where
-                        TABLE_SCHEMA = "[schemaName]"
-                        and TABLE_NAME = "[tableName]";
+                    from information_schema.TABLE_CONSTRAINTS;
                     """;
-
-            SQLQuery = SQLQuery.replace("[schemaName]", schemaName);
-            SQLQuery = SQLQuery.replace("[tableName]", tableName);
 
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
 
                 String constraintName = results.getString("CONSTRAINT_NAME");
-                
-                List<ConstraintColumn> constraintColumns = LoadConstraintColumns(connection, schemaName, tableName);
+                String schemaName = results.getString("TABLE_SCHEMA");
+                String tableName = results.getString("TABLE_NAME");
 
                 Constraint constraint = new Constraint(
+                        connection.getServer().getDatabase(schemaName).getTable(tableName),
                         constraintName,
-                        results.getString("CONSTRAINT_TYPE"),
-                        constraintColumns
+                        results.getString("CONSTRAINT_TYPE")
                 );
-
-                Constraints.add(constraint);
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

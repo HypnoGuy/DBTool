@@ -4,13 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class TableColumn {
+public class Column {
 
     // Class variables
-    private static List<TableColumn> columns = new ArrayList<TableColumn>();
+    private static List<Column> columns = new ArrayList<Column>();
 
     // Instance Variables
     private final Table table;
+    private final View view;
     private final String columnName;
     private final String columnType;
     private final String dataType;
@@ -23,9 +24,10 @@ public class TableColumn {
     private final String characterSetName;
     private final String collationName;
 
-    // Constructor
-    public TableColumn(
+        // Constructor
+    public Column(
             Table table,
+            View view,
             String columnName,
 
             String columnType,
@@ -43,6 +45,7 @@ public class TableColumn {
             String collationName
     ) {
         this.table = table;
+        this.view = view;
         this.columnName = columnName;
 
         this.columnType = columnType;
@@ -60,11 +63,16 @@ public class TableColumn {
         this.collationName = collationName;
 
         columns.add(this);
-        table.getTableColumns().add(this);
+
+        if(view == null)
+            table.getTableColumns().add(this);
+        else
+            view.getViewColumns().add(this);
     }
 
     // Getters and Setters
     public Table getTable() { return table; }
+    public View getView() { return view; }
     public String getColumnName() { return columnName; }
     public String getColumnType() { return columnType; }
     public String getDataType() { return dataType; }
@@ -81,7 +89,7 @@ public class TableColumn {
 
     @Override
     public String toString() {
-        return "TableColumn{" +
+        return "Column{" +
                 "columnName='" + columnName + '\'' +
                 ", columnType='" + columnType + '\'' +
                 ", dataType='" + dataType + '\'' +
@@ -92,7 +100,7 @@ public class TableColumn {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        TableColumn that = (TableColumn) o;
+        Column that = (Column) o;
         return Objects.equals(table, that.table) && Objects.equals(columnName, that.columnName);
     }
 
