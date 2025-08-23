@@ -12,7 +12,7 @@ public class Column {
     // Instance Variables
     private final Table table;
     private final View view;
-    private final String columnName;
+    private final String name;
     private final String columnType;
     private final String dataType;
     private final Long characterMaximumLength; // For string types
@@ -28,7 +28,7 @@ public class Column {
     public Column(
             Table table,
             View view,
-            String columnName,
+            String name,
 
             String columnType,
             String dataType,
@@ -46,7 +46,7 @@ public class Column {
     ) {
         this.table = table;
         this.view = view;
-        this.columnName = columnName;
+        this.name = name;
 
         this.columnType = columnType;
         this.dataType = dataType;
@@ -65,7 +65,7 @@ public class Column {
         columns.add(this);
 
         if(view == null)
-            table.getTableColumns().add(this);
+            table.getColumns().add(this);
         else
             view.getViewColumns().add(this);
     }
@@ -73,7 +73,7 @@ public class Column {
     // Getters and Setters
     public Table getTable() { return table; }
     public View getView() { return view; }
-    public String getColumnName() { return columnName; }
+    public String getName() { return name; }
     public String getColumnType() { return columnType; }
     public String getDataType() { return dataType; }
     public Long getCharacterMaximumLength() { return characterMaximumLength; }
@@ -90,7 +90,7 @@ public class Column {
     @Override
     public String toString() {
         return "Column{" +
-                "columnName='" + columnName + '\'' +
+                "columnName='" + name + '\'' +
                 ", columnType='" + columnType + '\'' +
                 ", dataType='" + dataType + '\'' +
                 ", isNullable=" + isNullable +
@@ -101,12 +101,12 @@ public class Column {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Column that = (Column) o;
-        return Objects.equals(table, that.table) && Objects.equals(columnName, that.columnName);
+        return Objects.equals(table, that.table) && Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(table, columnName);
+        return Objects.hash(table, name);
     }
 }
 

@@ -65,7 +65,6 @@ public class Database {
 
         return foundTable;
     }
-
     public View getView(String viewName) {
         View foundView = null;
 

@@ -2,9 +2,7 @@ package com.mariadb;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 import com.dbmodel.*;
 
@@ -19,6 +17,7 @@ public  class SchemaLoader {
         LoadTablesAndViews();
         LoadColumns();
         LoadConstraints();
+        LoadConstraintColumns();
     }
 
     public static void LoadServer() {
@@ -140,15 +139,24 @@ public  class SchemaLoader {
         }
     }
 
-    private static List<Constraint> LoadConstraints()  {
-
-        List<Constraint> Constraints = new ArrayList<>();
+    private static void LoadConstraints()  {
 
         try {
             String SQLQuery = """
-                    select *
-                    from information_schema.TABLE_CONSTRAINTS;
-                    """;
+                select
+                    TABLE_CONSTRAINTS.*,
+                    KEY_COLUMN_USAGE.REFERENCED_TABLE_SCHEMA,
+                    KEY_COLUMN_USAGE.REFERENCED_TABLE_NAME
+                from
+                    information_schema.TABLE_CONSTRAINTS
+                    inner join information_schema.KEY_COLUMN_USAGE
+                        on TABLE_CONSTRAINTS.TABLE_SCHEMA = KEY_COLUMN_USAGE.TABLE_SCHEMA
+                        and TABLE_CONSTRAINTS.CONSTRAINT_NAME = KEY_COLUMN_USAGE.CONSTRAINT_NAME
+                where TABLE_CONSTRAINTS.TABLE_SCHEMA not in ('performance_schema', 'information_schema');
+                """;
+
+            // TODO - Just added the above so we know the referenced schema and table name
+            // So we can add the new Constraint the the references tabel as well for fks
 
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
@@ -156,52 +164,77 @@ public  class SchemaLoader {
                 String constraintName = results.getString("CONSTRAINT_NAME");
                 String schemaName = results.getString("TABLE_SCHEMA");
                 String tableName = results.getString("TABLE_NAME");
+                String constraintType = results.getString("CONSTRAINT_TYPE");
 
-                Constraint constraint = new Constraint(
+                Constraint constraint;
+                if(constraintType.equals("FOREIGN KEY"))
+                    constraint = new Constraint(
                         connection.getServer().getDatabase(schemaName).getTable(tableName),
                         constraintName,
-                        results.getString("CONSTRAINT_TYPE")
-                );
+                        constraintType
+                    );
+                else
+                    constraint = new Constraint(
+                            connection.getServer().getDatabase(schemaName).getTable(tableName),
+                            constraintName,
+                            constraintType
+                    );
+
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        return Constraints;
     }
 
-    private static List<ConstraintColumn> LoadConstraintColumns(Connection connection, String schemaName, String constraintName)  {
-
-        List<ConstraintColumn> ConstraintColumns = new ArrayList<>();
+    private static void LoadConstraintColumns()  {
 
         try {
             String SQLQuery = """
                     select *
                     from information_schema.KEY_COLUMN_USAGE
-                    where
-                        CONSTRAINT_SCHEMA = "[schemaName]"
-                        and CONSTRAINT_NAME = "[constraintName]";
+                    where TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    order by ORDINAL_POSITION;
                     """;
-
-            SQLQuery = SQLQuery.replace("[schemaName]", schemaName);
-            SQLQuery = SQLQuery.replace("[constraintName]", constraintName);
 
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
 
-                /* ConstraintColumn constraintColumn = new ConstraintColumn(
-                        ?,
-                        ?
-                );
+                String constraintName = results.getString("CONSTRAINT_NAME");
 
-                ConstraintColumns.add(constraintColumn);
+                String schemaName = results.getString("TABLE_SCHEMA");
+                String tableName = results.getString("TABLE_NAME");
+                String columnName = results.getString("COLUMN_NAME");
 
-                */
+                String referencedSchemaName = results.getString("REFERENCED_TABLE_SCHEMA");
+                String referencedTableName = results.getString("REFERENCED_TABLE_NAME");
+                String referencedColumnName = results.getString("REFERENCED_COLUMN_NAME");
+
+                // Check reference for existence and that we have their references objects in our model
+                Database referencedDatabase = null;
+                Table referencedTable = null;
+                Column referencedColumn = null;
+
+                if(referencedSchemaName != null) referencedDatabase = connection.getServer().getDatabase(referencedSchemaName);
+                if(referencedDatabase != null) referencedTable = referencedDatabase.getTable(referencedTableName);
+                if(referencedTable != null) referencedColumn = referencedTable.getColumn(referencedColumnName);
+
+                ConstraintColumn constraintColumn;
+
+                if(referencedColumn != null)
+                    constraintColumn = new ConstraintColumn(
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName),
+                            connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName).getColumn(referencedColumnName)
+                    );
+                else
+                    constraintColumn = new ConstraintColumn(
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName),
+                            null
+                    );
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-
-        return ConstraintColumns;
     }
 }

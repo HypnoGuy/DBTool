@@ -17,9 +17,9 @@ public class Table {
     private final List<Constraint> constraints = new ArrayList<>();
 
     // Constructors
-    public Table(Database database, String tableName, String collationName) {
+    public Table(Database database, String name, String collationName) {
         this.database = database;
-        this.name = tableName;
+        this.name = name;
         this.collationName = collationName;
 
         tables.add(this);
@@ -30,17 +30,42 @@ public class Table {
     public Database getDatabase() { return database; }
     public String getName() { return name; }
     public String getCollationName() { return collationName; }
-    public List<Column> getTableColumns() { return columns; }
+    public List<Column> getColumns() { return columns; }
     public List<Constraint> getConstraints() { return constraints; }
 
+
     // Methods
+    public Column getColumn(String columnName) {
+        Column foundColumn = null;
+
+        for (Column Column : columns ) {
+            if (Column.getName().equals(columnName)) {
+                foundColumn = Column;
+                break;
+            }
+        }
+
+        return foundColumn;
+    }
+    public Constraint getConstraint(String constraintName) {
+        Constraint foundConstraint = null;
+
+        for (Constraint Constraint : constraints ) {
+            if (Constraint.getName().equals(constraintName)) {
+                foundConstraint = Constraint;
+                break;
+            }
+        }
+
+        return foundConstraint;
+    }
     public byte getMaxColumnNameLength() {
 
         byte maxColumnNameLength = 0;
 
         for(Column column : columns) {
-            if (column.getColumnName().length() > maxColumnNameLength)
-                maxColumnNameLength = (byte) column.getColumnName().length();
+            if (column.getName().length() > maxColumnNameLength)
+                maxColumnNameLength = (byte) column.getName().length();
         }
 
         return maxColumnNameLength;
@@ -54,10 +79,10 @@ public class Table {
 
         while(!done) {
 
-            prefix = columns.getFirst().getColumnName().substring(0, charIndex);
+            prefix = columns.getFirst().getName().substring(0, charIndex);
 
             for (Column column : columns) {
-                if (!column.getColumnName().startsWith(prefix)) {
+                if (!column.getName().startsWith(prefix)) {
                     done = true;
                     break;
                 }
