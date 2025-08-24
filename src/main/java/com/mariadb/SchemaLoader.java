@@ -161,9 +161,6 @@ public  class SchemaLoader {
                 where TABLE_CONSTRAINTS.TABLE_SCHEMA not in ('performance_schema', 'information_schema');
                 """;
 
-            // TODO - Just added the above so we know the referenced schema and table name
-            // So we can add the new Constraint the the references tabel as well for fks
-
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
 
@@ -171,11 +168,21 @@ public  class SchemaLoader {
                 String schemaName = results.getString("TABLE_SCHEMA");
                 String tableName = results.getString("TABLE_NAME");
                 String constraintType = results.getString("CONSTRAINT_TYPE");
+                String referencedSchemaName = results.getString("REFERENCED_TABLE_SCHEMA");
+                String referencedTableName = results.getString("REFERENCED_TABLE_NAME");
+
+                Database referencedDatabase = null;
+                Table referencedTable = null;
+
+                // Check reference for existence and that we have their references objects in our model
+                if(referencedSchemaName != null) referencedDatabase = connection.getServer().getDatabase(referencedSchemaName);
+                if(referencedDatabase != null) referencedTable = referencedDatabase.getTable(referencedTableName);
 
                 Constraint constraint;
-                if(constraintType.equals("FOREIGN KEY"))
+                if(referencedTable != null)
                     constraint = new Constraint(
                         connection.getServer().getDatabase(schemaName).getTable(tableName),
+                        connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName),
                         constraintName,
                         constraintType
                     );
@@ -185,7 +192,6 @@ public  class SchemaLoader {
                             constraintName,
                             constraintType
                     );
-
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -235,8 +241,7 @@ public  class SchemaLoader {
                 else
                     constraintColumn = new ConstraintColumn(
                             connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
-                            connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName),
-                            null
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName)
                     );
             }
         } catch (SQLException e) {
