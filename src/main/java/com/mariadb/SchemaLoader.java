@@ -11,7 +11,9 @@ public  class SchemaLoader {
     private static Connection connection ;
 
     public static void LoadSchemaFromConnection(Connection connection) {
+
         SchemaLoader.connection = connection;
+
         LoadServer();
         LoadDatabases();
         LoadTablesAndViews();
@@ -142,6 +144,10 @@ public  class SchemaLoader {
     private static void LoadConstraints()  {
 
         try {
+
+            // Query needs pull referred to  schema.table from KEY_COLUMN_USAGE as
+            // MariaDB store this at the column level despite a FK only capable of
+            // referring to a single table
             String SQLQuery = """
                 select
                     TABLE_CONSTRAINTS.*,
