@@ -11,18 +11,8 @@ public class ConstraintColumn {
     // Instance Variables
     private final Constraint constraint;
     private final Column column;
-    private Column referencedColumn = null;
 
     // Constructors
-    public ConstraintColumn(Constraint constraint, Column column, Column referencedColumn) {
-        this.constraint = constraint;
-        this.column = column;
-        this.referencedColumn = referencedColumn;
-
-        constraintColumns.add(this);
-        constraint.getConstraintColumns().add(this);
-    }
-
     public ConstraintColumn(Constraint constraint, Column column) {
         this.constraint = constraint;
         this.column = column;
@@ -33,5 +23,4 @@ public class ConstraintColumn {
 
     // Setters and Getters
     public Column getColumn() { return column; }
-    public Column getReferencedColumn() { return referencedColumn; }
 }

@@ -15,6 +15,7 @@ public class Table {
     private final String collationName;
     private final List<Column> columns = new ArrayList<>();
     private final List<Constraint> constraints = new ArrayList<>();
+    private final List<ForeignKey> foreignKeys = new ArrayList<>();
 
     // Constructors
     public Table(Database database, String name, String collationName) {
@@ -32,7 +33,7 @@ public class Table {
     public String getCollationName() { return collationName; }
     public List<Column> getColumns() { return columns; }
     public List<Constraint> getConstraints() { return constraints; }
-
+    public List<ForeignKey> getForeignKeys() { return foreignKeys; }
 
     // Methods
     public Column getColumn(String columnName) {
@@ -58,6 +59,18 @@ public class Table {
         }
 
         return foundConstraint;
+    }
+    public ForeignKey getForeignKey(String foreignKeyName) {
+        ForeignKey foundForeignKey = null;
+
+        for (ForeignKey ForeignKey : foreignKeys ) {
+            if (ForeignKey.getName().equals(foreignKeyName)) {
+                foundForeignKey = ForeignKey;
+                break;
+            }
+        }
+
+        return foundForeignKey;
     }
     public byte getMaxColumnNameLength() {
 

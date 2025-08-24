@@ -204,7 +204,9 @@ public  class SchemaLoader {
             String SQLQuery = """
                     select *
                     from information_schema.KEY_COLUMN_USAGE
-                    where TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    where
+                        TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                        and  NEED TO INCLUDE CONSTRAINTS SO WE CAN LIMIT TO NON_FKS
                     order by ORDINAL_POSITION;
                     """;
 
@@ -212,6 +214,35 @@ public  class SchemaLoader {
             while(results.next()) {
 
                 String constraintName = results.getString("CONSTRAINT_NAME");
+
+                String schemaName = results.getString("TABLE_SCHEMA");
+                String tableName = results.getString("TABLE_NAME");
+                String columnName = results.getString("COLUMN_NAME");
+
+                ConstraintColumn constraintColumn = new ConstraintColumn(
+                        connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
+                        connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName)
+                );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void LoadForeignKeyColumns()  {
+
+        try {
+            String SQLQuery = """
+                    select *
+                    from information_schema.KEY_COLUMN_USAGE
+                    where TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    order by ORDINAL_POSITION;
+                    """;
+
+            ResultSet results = connection.executeQuery(SQLQuery);
+            while(results.next()) {
+
+                String foreignKeyName = results.getString("FOREIGNKEY_NAME");
 
                 String schemaName = results.getString("TABLE_SCHEMA");
                 String tableName = results.getString("TABLE_NAME");
@@ -230,17 +261,17 @@ public  class SchemaLoader {
                 if(referencedDatabase != null) referencedTable = referencedDatabase.getTable(referencedTableName);
                 if(referencedTable != null) referencedColumn = referencedTable.getColumn(referencedColumnName);
 
-                ConstraintColumn constraintColumn;
+                ForeignKeyColumn foreignKeyColumn;
 
                 if(referencedColumn != null)
-                    constraintColumn = new ConstraintColumn(
-                            connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
+                    foreignKeyColumn = new ForeignKeyColumn(
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getForeignKey(foreignKeyName),
                             connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName),
                             connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName).getColumn(referencedColumnName)
                     );
                 else
-                    constraintColumn = new ConstraintColumn(
-                            connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
+                    foreignKeyColumn = new ForeignKeyColumn(
+                            connection.getServer().getDatabase(schemaName).getTable(tableName).getForeignKey(foreignKeyName),
                             connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName)
                     );
             }
