@@ -31,7 +31,7 @@ public class View {
     // toString, equals and hashCode
     @Override
     public String toString() {
-        return "View{name='" + name + "'}";
+        return name;
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mariadb.Connection;
 
 import java.util.ArrayList;
@@ -81,7 +83,17 @@ public class Database {
     // toString, equals and hashCode
     @Override
     public String toString() {
-        return "Database{name='" + name + "'}";
+        return name;
+    }
+
+    public String toJson() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            return mapper.writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            // Handle the exception, or rethrow as a RuntimeException
+            return "{}"; // Or some other default value
+        }
     }
 
     @Override

@@ -18,9 +18,14 @@ public class ConstraintColumn {
         this.column = column;
 
         constraintColumns.add(this);
-        constraint.getConstraintColumns().add(this);
+        constraint.getColumns().add(this);
     }
 
     // Setters and Getters
     public Column getColumn() { return column; }
+
+    @Override
+    public String toString() {
+        return column.toString() ;
+    }
 }

@@ -20,6 +20,8 @@ public  class SchemaLoader {
         LoadColumns();
         LoadConstraints();
         LoadConstraintColumns();
+        LoadForeignKeys();
+        LoadForeignKeyColumns();
     }
 
     public static void LoadServer() {
@@ -145,20 +147,13 @@ public  class SchemaLoader {
 
         try {
 
-            // Query needs pull referred to  schema.table from KEY_COLUMN_USAGE as
-            // MariaDB store this at the column level despite a FK only capable of
-            // referring to a single table
             String SQLQuery = """
-                select
-                    TABLE_CONSTRAINTS.*,
-                    KEY_COLUMN_USAGE.REFERENCED_TABLE_SCHEMA,
-                    KEY_COLUMN_USAGE.REFERENCED_TABLE_NAME
+                select *
                 from
                     information_schema.TABLE_CONSTRAINTS
-                    inner join information_schema.KEY_COLUMN_USAGE
-                        on TABLE_CONSTRAINTS.TABLE_SCHEMA = KEY_COLUMN_USAGE.TABLE_SCHEMA
-                        and TABLE_CONSTRAINTS.CONSTRAINT_NAME = KEY_COLUMN_USAGE.CONSTRAINT_NAME
-                where TABLE_CONSTRAINTS.TABLE_SCHEMA not in ('performance_schema', 'information_schema');
+                where
+                    TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    and CONSTRAINT_TYPE != "FOREIGN_KEY";
                 """;
 
             ResultSet results = connection.executeQuery(SQLQuery);
@@ -168,30 +163,12 @@ public  class SchemaLoader {
                 String schemaName = results.getString("TABLE_SCHEMA");
                 String tableName = results.getString("TABLE_NAME");
                 String constraintType = results.getString("CONSTRAINT_TYPE");
-                String referencedSchemaName = results.getString("REFERENCED_TABLE_SCHEMA");
-                String referencedTableName = results.getString("REFERENCED_TABLE_NAME");
 
-                Database referencedDatabase = null;
-                Table referencedTable = null;
-
-                // Check reference for existence and that we have their references objects in our model
-                if(referencedSchemaName != null) referencedDatabase = connection.getServer().getDatabase(referencedSchemaName);
-                if(referencedDatabase != null) referencedTable = referencedDatabase.getTable(referencedTableName);
-
-                Constraint constraint;
-                if(referencedTable != null)
-                    constraint = new Constraint(
-                        connection.getServer().getDatabase(schemaName).getTable(tableName),
-                        connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName),
-                        constraintName,
-                        constraintType
-                    );
-                else
-                    constraint = new Constraint(
-                            connection.getServer().getDatabase(schemaName).getTable(tableName),
-                            constraintName,
-                            constraintType
-                    );
+                Constraint constraint = new Constraint(
+                    connection.getServer().getDatabase(schemaName).getTable(tableName),
+                    constraintName,
+                    constraintType
+                );
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -202,27 +179,85 @@ public  class SchemaLoader {
 
         try {
             String SQLQuery = """
-                    select *
-                    from information_schema.KEY_COLUMN_USAGE
-                    where
-                        TABLE_SCHEMA not in ('performance_schema', 'information_schema')
-                        and  NEED TO INCLUDE CONSTRAINTS SO WE CAN LIMIT TO NON_FKS
-                    order by ORDINAL_POSITION;
-                    """;
+                select
+                    KEY_COLUMN_USAGE.*
+                from
+                    information_schema.KEY_COLUMN_USAGE
+                    inner join information_schema.TABLE_CONSTRAINTS
+                        on TABLE_CONSTRAINTS.TABLE_SCHEMA = KEY_COLUMN_USAGE.TABLE_SCHEMA
+                        and TABLE_CONSTRAINTS.CONSTRAINT_NAME = KEY_COLUMN_USAGE.CONSTRAINT_NAME
+                where
+                    KEY_COLUMN_USAGE.TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    and TABLE_CONSTRAINTS.CONSTRAINT_TYPE != "FOREIGN_KEY"
+                order by ORDINAL_POSITION;
+                """;
 
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
 
+                String schemaName = results.getString("TABLE_SCHEMA");
                 String constraintName = results.getString("CONSTRAINT_NAME");
 
-                String schemaName = results.getString("TABLE_SCHEMA");
                 String tableName = results.getString("TABLE_NAME");
                 String columnName = results.getString("COLUMN_NAME");
 
-                ConstraintColumn constraintColumn = new ConstraintColumn(
-                        connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
-                        connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName)
+                ConstraintColumn constraintColumn  = new ConstraintColumn(
+                    connection.getServer().getDatabase(schemaName).getTable(tableName).getConstraint(constraintName),
+                    connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName)
                 );
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void LoadForeignKeys()  {
+
+        try {
+
+            // Query needs pull referred to  schema.table from KEY_COLUMN_USAGE as
+            // MariaDB store this at the column level despite a FK only capable of
+            // referring to a single table
+            String SQLQuery = """
+                select distinct
+                    TABLE_CONSTRAINTS.*,
+                    KEY_COLUMN_USAGE.REFERENCED_TABLE_SCHEMA,
+                    KEY_COLUMN_USAGE.REFERENCED_TABLE_NAME
+                from
+                    information_schema.TABLE_CONSTRAINTS
+                    inner join information_schema.KEY_COLUMN_USAGE
+                        on TABLE_CONSTRAINTS.TABLE_SCHEMA = KEY_COLUMN_USAGE.TABLE_SCHEMA
+                        and TABLE_CONSTRAINTS.CONSTRAINT_NAME = KEY_COLUMN_USAGE.CONSTRAINT_NAME
+                where
+                    TABLE_CONSTRAINTS.TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    and  TABLE_CONSTRAINTS.CONSTRAINT_TYPE != "FOREIGN_KEY";
+                """;
+
+            ResultSet results = connection.executeQuery(SQLQuery);
+            while(results.next()) {
+
+                String foreignKeyName = results.getString("CONSTRAINT_NAME");
+                String schemaName = results.getString("TABLE_SCHEMA");
+                String tableName = results.getString("TABLE_NAME");
+                String foreignKeyType = results.getString("CONSTRAINT_TYPE");
+                String referencedSchemaName = results.getString("REFERENCED_TABLE_SCHEMA");
+                String referencedTableName = results.getString("REFERENCED_TABLE_NAME");
+
+                Database referencedDatabase = null;
+                Table referencedTable = null;
+
+                // Check reference for existence and that we have their references objects in our model
+                if(referencedSchemaName != null) referencedDatabase = connection.getServer().getDatabase(referencedSchemaName);
+                if(referencedDatabase != null) referencedTable = referencedDatabase.getTable(referencedTableName);
+
+                ForeignKey foreignKey;
+                if(referencedTable != null)
+                    foreignKey = new ForeignKey(
+                            connection.getServer().getDatabase(schemaName).getTable(tableName),
+                            connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName),
+                            foreignKeyName
+                    );
+
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -242,7 +277,7 @@ public  class SchemaLoader {
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
 
-                String foreignKeyName = results.getString("FOREIGNKEY_NAME");
+                String foreignKeyName = results.getString("CONSTRAINT_NAME");
 
                 String schemaName = results.getString("TABLE_SCHEMA");
                 String tableName = results.getString("TABLE_NAME");
@@ -266,12 +301,7 @@ public  class SchemaLoader {
                 if(referencedColumn != null)
                     foreignKeyColumn = new ForeignKeyColumn(
                             connection.getServer().getDatabase(schemaName).getTable(tableName).getForeignKey(foreignKeyName),
-                            connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName),
-                            connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName).getColumn(referencedColumnName)
-                    );
-                else
-                    foreignKeyColumn = new ForeignKeyColumn(
-                            connection.getServer().getDatabase(schemaName).getTable(tableName).getForeignKey(foreignKeyName),
+                            connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName).getColumn(referencedColumnName),
                             connection.getServer().getDatabase(schemaName).getTable(tableName).getColumn(columnName)
                     );
             }

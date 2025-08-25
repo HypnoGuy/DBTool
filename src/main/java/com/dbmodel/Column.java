@@ -89,12 +89,7 @@ public class Column {
 
     @Override
     public String toString() {
-        return "Column{" +
-                "columnName='" + name + '\'' +
-                ", columnType='" + columnType + '\'' +
-                ", dataType='" + dataType + '\'' +
-                ", isNullable=" + isNullable +
-                '}';
+        return name;
     }
 
     @Override

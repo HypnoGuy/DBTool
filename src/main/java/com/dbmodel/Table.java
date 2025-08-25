@@ -113,7 +113,7 @@ public class Table {
     // toString, equals and hashCode
     @Override
     public String toString() {
-        return "Table{name='" + name + "'}";
+        return name;
     }
 
     @Override

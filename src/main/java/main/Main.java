@@ -15,7 +15,7 @@ public class Main {
         connection.setUserPasswordEncrypted("ENC(J8WjiCcdUwrMfkxxiV/6UnNOX93ib133oHGjOmzxtzqU1A0V2wnDa5oMfL/fMj30CsZvc6kmzL6dOG4FCOxfvA==)");
         SchemaLoader.LoadSchemaFromConnection(connection);
 
-        System.out.println(connection.getServer().getDatabases().getFirst().getTables().getFirst().getColumnPrefix());
+        System.out.println(connection.getServer().toJson());
 
     }
 }

@@ -34,4 +34,7 @@ public class ForeignKeyColumn {
     // Setters and Getters
     public Column getMasterColumn() { return masterColumn; }
     public Column getDetailColumn() { return detailColumn; }
+
+    @Override
+    public String toString() { return masterColumn.toString() + " -> " + detailColumn.toString() ; }
 }

@@ -13,7 +13,7 @@ public class ForeignKey {
     private final Table masterTable;
     private Table detailTable = null;
     private final String name;
-    private final List<ConstraintColumn> constraintColumns = new ArrayList<>();
+    private final List<ForeignKeyColumn> columns = new ArrayList<>();
 
     // Constructors
     public ForeignKey(Table masterTable, Table detailTable, String name) {
@@ -30,14 +30,12 @@ public class ForeignKey {
     public Table getMasterTable() { return masterTable; }
     public Table getDetailTable() { return detailTable; }
     public String getName() { return name; }
-    public List<ConstraintColumn> getConstraintColumns() { return constraintColumns; }
+    public List<ForeignKeyColumn> getColumns() { return columns; }
 
     // toString, equals and hashCode
     @Override
     public String toString() {
-        return "ForeignKey{" +
-                "name='" + name + "'" +
-                "}";
+        return name;
     }
 
     @Override
