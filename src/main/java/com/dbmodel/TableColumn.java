@@ -1,17 +1,22 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Column {
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
+public class TableColumn {
 
     // Class variables
-    private static List<Column> columns = new ArrayList<Column>();
+    private static List<TableColumn> tableColumns = new ArrayList<>();
 
     // Instance Variables
     private final Table table;
-    private final View view;
     private final String name;
     private final String columnType;
     private final String dataType;
@@ -25,9 +30,8 @@ public class Column {
     private final String collationName;
 
         // Constructor
-    public Column(
+        public TableColumn(
             Table table,
-            View view,
             String name,
 
             String columnType,
@@ -45,7 +49,6 @@ public class Column {
             String collationName
     ) {
         this.table = table;
-        this.view = view;
         this.name = name;
 
         this.columnType = columnType;
@@ -62,17 +65,12 @@ public class Column {
         this.characterSetName = characterSetName;
         this.collationName = collationName;
 
-        columns.add(this);
-
-        if(view == null)
-            table.getColumns().add(this);
-        else
-            view.getViewColumns().add(this);
+        tableColumns.add(this);
+        table.getColumns().add(this);
     }
 
     // Getters and Setters
     public Table getTable() { return table; }
-    public View getView() { return view; }
     public String getName() { return name; }
     public String getColumnType() { return columnType; }
     public String getDataType() { return dataType; }
@@ -85,8 +83,12 @@ public class Column {
     public String getCharacterSetName() { return characterSetName; }
     public String getCollationName() { return collationName ; }
 
-    // toString, equals and hashCode
+    // FQ Name
+    public String getFullyQualifiedName() {
+        return String.join(".", table.getFullyQualifiedName(), name);
+    }
 
+    // toString, equals and hashCode
     @Override
     public String toString() {
         return name;
@@ -95,7 +97,7 @@ public class Column {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        Column that = (Column) o;
+        TableColumn that = (TableColumn) o;
         return Objects.equals(table, that.table) && Objects.equals(name, that.name);
     }
 

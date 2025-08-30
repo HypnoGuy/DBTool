@@ -1,8 +1,14 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.ArrayList;
 import java.util.List;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
 public class ForeignKeyColumn {
 
     // Class Variables
@@ -10,31 +16,38 @@ public class ForeignKeyColumn {
 
     // Instance Variables
     private final ForeignKey foreignKey;
-    private final Column masterColumn;
-    private Column detailColumn = null;
+    private final TableColumn masterTableColumn;
+    private TableColumn detailTableColumn = null;
 
     // Constructors
-    public ForeignKeyColumn(ForeignKey foreignKey, Column masterColumn, Column detailColumn) {
+    public ForeignKeyColumn(ForeignKey foreignKey, TableColumn masterTableColumn, TableColumn detailTableColumn) {
         this.foreignKey = foreignKey;
-        this.masterColumn = masterColumn;
-        this.detailColumn = detailColumn;
+        this.masterTableColumn = masterTableColumn;
+        this.detailTableColumn = detailTableColumn;
 
         foreignKeyColumns.add(this);
         foreignKey.getColumns().add(this);
     }
 
-    public ForeignKeyColumn(ForeignKey foreignKey, Column column) {
+    public ForeignKeyColumn(ForeignKey foreignKey, TableColumn tableColumn) {
         this.foreignKey = foreignKey;
-        this.masterColumn = column;
+        this.masterTableColumn = tableColumn;
 
         foreignKeyColumns.add(this);
         foreignKey.getColumns().add(this);
     }
 
     // Setters and Getters
-    public Column getMasterColumn() { return masterColumn; }
-    public Column getDetailColumn() { return detailColumn; }
+    public TableColumn getMasterColumn() { return masterTableColumn; }
+    public TableColumn getDetailColumn() { return detailTableColumn; }
 
+    // FQ Name
+    public String getFullyQualifiedName() { return String.join(".",foreignKey.getFullyQualifiedName(), masterTableColumn.getFullyQualifiedName()); }
+
+    // toString, equals and hashCode
+    // TODO where are they ?
     @Override
-    public String toString() { return masterColumn.toString() + " -> " + detailColumn.toString() ; }
+    public String toString() { return masterTableColumn.toString() + " -> " + detailTableColumn.toString() ; }
+
+
 }

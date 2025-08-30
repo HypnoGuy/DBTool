@@ -1,9 +1,15 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
 public class ForeignKey {
 
     // Class Variables
@@ -31,6 +37,9 @@ public class ForeignKey {
     public Table getDetailTable() { return detailTable; }
     public String getName() { return name; }
     public List<ForeignKeyColumn> getColumns() { return columns; }
+
+    // FQ Name
+    public String getFullyQualifiedName() { return String.join(".", masterTable.getFullyQualifiedName(), name); }
 
     // toString, equals and hashCode
     @Override

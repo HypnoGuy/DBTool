@@ -1,5 +1,7 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mariadb.Connection;
@@ -9,9 +11,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
 public class Server {
 
-    // Class Variables
+    // Class Variables and Methods
     private static final List<Server> servers = new ArrayList<>();
 
     // Instance Variables
@@ -27,8 +32,6 @@ public class Server {
     }
 
     // Getters and Setters
-    public static List<Server> getServers() { return servers; }
-
     public String getHostName() { return globalVariables.get("HOSTNAME"); }
     public String getProductName() { return globalVariables.get("VERSION_COMMENT"); }
     public String getProductVersion() { return globalVariables.get("VERSION"); }
@@ -55,9 +58,13 @@ public class Server {
             return mapper.writeValueAsString(this);
         } catch (JsonProcessingException e) {
             // Handle the exception, or rethrow as a RuntimeException
+            e.printStackTrace();
             return "{}"; // Or some other default value
         }
     }
+
+    // FQ Name
+    public String getFullyQualifiedName() { return getHostName();}
 
     // toString, equals and hashCode
     @Override
@@ -76,4 +83,7 @@ public class Server {
     public int hashCode() {
         return Objects.hashCode(getHostName());
     }
+
+
+
 }

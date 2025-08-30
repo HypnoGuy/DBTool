@@ -1,9 +1,15 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
 public class Table {
 
     // Class Variables
@@ -13,7 +19,7 @@ public class Table {
     private Database database;
     private final String name;
     private final String collationName;
-    private final List<Column> columns = new ArrayList<>();
+    private final List<TableColumn> tableColumns = new ArrayList<>();
     private final List<Constraint> constraints = new ArrayList<>();
     private final List<ForeignKey> foreignKeys = new ArrayList<>();
 
@@ -31,22 +37,22 @@ public class Table {
     public Database getDatabase() { return database; }
     public String getName() { return name; }
     public String getCollationName() { return collationName; }
-    public List<Column> getColumns() { return columns; }
+    public List<TableColumn> getColumns() { return tableColumns; }
     public List<Constraint> getConstraints() { return constraints; }
     public List<ForeignKey> getForeignKeys() { return foreignKeys; }
 
     // Methods
-    public Column getColumn(String columnName) {
-        Column foundColumn = null;
+    public TableColumn getColumn(String columnName) {
+        TableColumn foundTableColumn = null;
 
-        for (Column Column : columns ) {
-            if (Column.getName().equals(columnName)) {
-                foundColumn = Column;
+        for (TableColumn TableColumn : tableColumns) {
+            if (TableColumn.getName().equals(columnName)) {
+                foundTableColumn = TableColumn;
                 break;
             }
         }
 
-        return foundColumn;
+        return foundTableColumn;
     }
     public Constraint getConstraint(String constraintName) {
         Constraint foundConstraint = null;
@@ -76,9 +82,9 @@ public class Table {
 
         byte maxColumnNameLength = 0;
 
-        for(Column column : columns) {
-            if (column.getName().length() > maxColumnNameLength)
-                maxColumnNameLength = (byte) column.getName().length();
+        for(TableColumn tableColumn : tableColumns) {
+            if (tableColumn.getName().length() > maxColumnNameLength)
+                maxColumnNameLength = (byte) tableColumn.getName().length();
         }
 
         return maxColumnNameLength;
@@ -92,10 +98,10 @@ public class Table {
 
         while(!done) {
 
-            prefix = columns.getFirst().getName().substring(0, charIndex);
+            prefix = tableColumns.getFirst().getName().substring(0, charIndex);
 
-            for (Column column : columns) {
-                if (!column.getName().startsWith(prefix)) {
+            for (TableColumn tableColumn : tableColumns) {
+                if (!tableColumn.getName().startsWith(prefix)) {
                     done = true;
                     break;
                 }
@@ -109,6 +115,9 @@ public class Table {
 
         return prefix.substring(0, prefix.length() - 1);
     }
+
+    // FQ Name
+    public String getFullyQualifiedName() { return String.join(".", database.getFullyQualifiedName(), name); }
 
     // toString, equals and hashCode
     @Override

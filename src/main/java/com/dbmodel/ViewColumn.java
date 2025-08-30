@@ -10,32 +10,36 @@ import java.util.Objects;
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
         property = "fullyQualifiedName")
-public class View {
 
-    // Class Variables
-    private static final List<View> views = new ArrayList<>();
+public class ViewColumn {
+
+    // Class variables
+    private static List<ViewColumn> viewColumns = new ArrayList<ViewColumn>();
 
     // Instance Variables
-    private Database database;
+    private final View view;
     private final String name;
-    private final List<ViewColumn> viewColumns = new ArrayList<>();
-    
-    // Constructors
-    public View(Database database, String name) {
-        this.database = database;
+
+        // Constructor
+        public ViewColumn(
+            View view,
+            String name
+    ) {
+        this.view = view;
         this.name = name;
 
-        views.add(this);
-        database.getViews().add(this);
+        viewColumns.add(this);
+        view.getColumns().add(this);
     }
 
     // Getters and Setters
-    public List<View> getViews() { return views; }
+    public View getView() { return view; }
     public String getName() { return name; }
-    public List<ViewColumn> getColumns() { return viewColumns; }
 
     // FQ Name
-    public String getFullyQualifiedName() { return String.join(".", database.getFullyQualifiedName(), name); }
+    public String getFullyQualifiedName() {
+        return String.join(".", view.getFullyQualifiedName(), name);
+    }
 
     // toString, equals and hashCode
     @Override
@@ -46,12 +50,13 @@ public class View {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        View view = (View) o;
-        return Objects.equals(database, view.database) && Objects.equals(name, view.name);
+        ViewColumn that = (ViewColumn) o;
+        return Objects.equals(view, that.view) && Objects.equals(name, that.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(database, name);
+        return Objects.hash(view, name);
     }
 }
+

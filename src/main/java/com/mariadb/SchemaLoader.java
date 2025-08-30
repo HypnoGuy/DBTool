@@ -17,7 +17,7 @@ public  class SchemaLoader {
         LoadServer();
         LoadDatabases();
         LoadTablesAndViews();
-        LoadColumns();
+        LoadTableColumns();
         LoadConstraints();
         LoadConstraintColumns();
         LoadForeignKeys();
@@ -51,7 +51,7 @@ public  class SchemaLoader {
             ResultSet results = connection.executeQuery(SQLQuery);
             while(results.next()) {
                 Database database = new Database(
-                        connection,
+                        connection.getServer(),
                         results.getString("SCHEMA_NAME"),
                         results.getString("DEFAULT_CHARACTER_SET_NAME"),
                         results.getString("DEFAULT_COLLATION_NAME")
@@ -99,7 +99,7 @@ public  class SchemaLoader {
         }
     }
 
-    private static void LoadColumns()  {
+    private static void LoadTableColumns()  {
 
         try {
             String SQLQuery = """
@@ -111,7 +111,9 @@ public  class SchemaLoader {
                         inner join information_schema.COLUMNS
                             on COLUMNS.TABLE_SCHEMA = TABLES.TABLE_SCHEMA
                             and COLUMNS.TABLE_NAME = TABLES.TABLE_NAME
-                    where TABLES.TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                    where
+                        TABLES.TABLE_SCHEMA not in ('performance_schema', 'information_schema')
+                        and TABLES.TABLE_TYPE = 'BASE TABLE'
                     order by TABLES.TABLE_SCHEMA, TABLES.TABLE_NAME, COLUMNS.ORDINAL_POSITION
                     """;
 
@@ -120,11 +122,9 @@ public  class SchemaLoader {
 
                 String schemaName = results.getString("TABLE_SCHEMA");
                 String name = results.getString("TABLE_NAME");
-                String tableType = results.getString("TABLE_TYPE");
 
-                Column column = new Column(
+                TableColumn tableColumn = new TableColumn(
                         connection.getServer().getDatabase(schemaName).getTable(name),
-                        connection.getServer().getDatabase(schemaName).getView(name),
                         results.getString("COLUMN_NAME"),
                         results.getString("COLUMN_TYPE"),
                         results.getString("DATA_TYPE"),
@@ -135,8 +135,7 @@ public  class SchemaLoader {
                         (results.getString("EXTRA").equals("auto_increment")),
                         results.getString("COLUMN_DEFAULT"),
                         results.getString("CHARACTER_SET_NAME"),
-                        results.getString("COLLATION_NAME")
-                );
+                        results.getString("COLLATION_NAME"));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -290,15 +289,15 @@ public  class SchemaLoader {
                 // Check reference for existence and that we have their references objects in our model
                 Database referencedDatabase = null;
                 Table referencedTable = null;
-                Column referencedColumn = null;
+                TableColumn referencedTableColumn = null;
 
                 if(referencedSchemaName != null) referencedDatabase = connection.getServer().getDatabase(referencedSchemaName);
                 if(referencedDatabase != null) referencedTable = referencedDatabase.getTable(referencedTableName);
-                if(referencedTable != null) referencedColumn = referencedTable.getColumn(referencedColumnName);
+                if(referencedTable != null) referencedTableColumn = referencedTable.getColumn(referencedColumnName);
 
                 ForeignKeyColumn foreignKeyColumn;
 
-                if(referencedColumn != null)
+                if(referencedTableColumn != null)
                     foreignKeyColumn = new ForeignKeyColumn(
                             connection.getServer().getDatabase(schemaName).getTable(tableName).getForeignKey(foreignKeyName),
                             connection.getServer().getDatabase(referencedSchemaName).getTable(referencedTableName).getColumn(referencedColumnName),

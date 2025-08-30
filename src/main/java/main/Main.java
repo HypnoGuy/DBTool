@@ -1,9 +1,11 @@
 package main;
 
-
-import com.dbmodel.Server;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mariadb.Connection;
 import com.mariadb.SchemaLoader;
+import com.utilities.TextFileWriter;
 
 public class Main {
 
@@ -15,7 +17,20 @@ public class Main {
         connection.setUserPasswordEncrypted("ENC(J8WjiCcdUwrMfkxxiV/6UnNOX93ib133oHGjOmzxtzqU1A0V2wnDa5oMfL/fMj30CsZvc6kmzL6dOG4FCOxfvA==)");
         SchemaLoader.LoadSchemaFromConnection(connection);
 
-        System.out.println(connection.getServer().toJson());
+        String rawJSON = connection.getServer().toJson();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = null;
+        try {
+            jsonNode = objectMapper.readTree(rawJSON);
+            String prettyJSON = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(jsonNode);
+            TextFileWriter textFileWriter = new TextFileWriter("schema.json");
+            textFileWriter.WriteAll(prettyJSON);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+
 
     }
 }

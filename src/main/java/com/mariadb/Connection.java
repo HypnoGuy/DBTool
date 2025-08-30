@@ -1,9 +1,14 @@
 package com.mariadb;
 
 import com.dbmodel.Server;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.utilities.CredentialEncryptor;
 import java.sql.*;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
 public class Connection {
 
     private java.sql.Connection connection;
@@ -16,7 +21,6 @@ public class Connection {
     private boolean isConnected;
 
     // Setters and getters
-
     public Server getServer() { return server; }
     protected void setServer(Server server) { this.server = server; }
 
@@ -72,6 +76,10 @@ public class Connection {
         isConnected = true;
     }
 
+    // FQ Name
+    public String getFullyQualifiedName() { return String.join(".", this.hostName, this.userName); }
+
+    // toString, equals and hashCode
     @Override
     public String toString() {
         return "Connection{" +
@@ -79,4 +87,6 @@ public class Connection {
                 ", userName='" + userName + '\'' +
                 '}';
     }
+
+    // TODO hashCode, equals?
 }

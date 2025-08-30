@@ -1,5 +1,7 @@
 package com.dbmodel;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mariadb.Connection;
@@ -8,13 +10,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "fullyQualifiedName")
 public class Database {
 
-    // Class Variables
+    // Class Variables and Methods
     private static final List<Database> databases = new ArrayList<>();
 
     // Instance Variables
-    private Connection connection;
+    private final Server server;
     private final String name;
     private final String characterSetName;
     private final String collationName;
@@ -23,14 +28,14 @@ public class Database {
     private final List<View> views = new ArrayList<>();
 
     // Constructors
-    public Database(Connection connection, String dbName, String characterSetName, String collationName) {
+    public Database(Server server, String dbName, String characterSetName, String collationName) {
         this.name = dbName;
         this.characterSetName = characterSetName;
         this.collationName = collationName;
-        this.connection = connection;
+        this.server = server;
 
         databases.add(this);
-        connection.getServer().getDatabases().add(this);
+        this.server.getDatabases().add(this);
     }
 
     // Setters and Getters
@@ -79,7 +84,10 @@ public class Database {
 
         return foundView;
     }
-    
+
+    // FQ Name
+    public String getFullyQualifiedName() { return String.join(".", server.getFullyQualifiedName(), name); }
+
     // toString, equals and hashCode
     @Override
     public String toString() {
@@ -100,11 +108,11 @@ public class Database {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Database database = (Database) o;
-        return Objects.equals(connection, database.connection) && Objects.equals(name, database.name);
+        return Objects.equals(server, database.server) && Objects.equals(name, database.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(connection, name);
+        return Objects.hash(server, name);
     }
 }
