@@ -2,6 +2,7 @@ package com.dbmodel;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.utilities.MapperInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +79,8 @@ public class TableColumn {
     public String getColumnDefault() { return columnDefault; }
     public String getCharacterSetName() { return characterSetName; }
     public String getCollationName() { return collationName ; }
+
+    public String export(MapperInterface mapper) { return mapper.map(this) ;}
 
     // FQ Name
     public String getFullyQualifiedName() {

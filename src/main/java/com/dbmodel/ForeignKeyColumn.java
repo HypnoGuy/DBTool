@@ -2,6 +2,7 @@ package com.dbmodel;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.utilities.MapperInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,8 @@ public class ForeignKeyColumn {
     // Setters and Getters
     public TableColumn getMasterColumn() { return masterTableColumn; }
     public TableColumn getDetailColumn() { return detailTableColumn; }
+
+    public String export(MapperInterface mapper) { return mapper.map(this) ;}
 
     // FQ Name
     public String getFullyQualifiedName() { return String.join(".",foreignKey.getFullyQualifiedName(), masterTableColumn.getFullyQualifiedName()); }

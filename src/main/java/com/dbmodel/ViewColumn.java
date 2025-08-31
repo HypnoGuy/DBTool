@@ -2,6 +2,7 @@ package com.dbmodel;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.utilities.MapperInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +32,8 @@ public class ViewColumn {
     // Getters and Setters
     public View getView() { return view; }
     public String getName() { return name; }
+
+    public String export(MapperInterface mapper) { return mapper.map(this) ;}
 
     // FQ Name
     public String getFullyQualifiedName() {

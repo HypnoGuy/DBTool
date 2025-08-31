@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mariadb.Connection;
+import com.utilities.MapperInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -93,15 +93,7 @@ public class Database {
         return name;
     }
 
-    public String toJson() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            // Handle the exception, or rethrow as a RuntimeException
-            return "{}"; // Or some other default value
-        }
-    }
+    public String export(MapperInterface mapper) { return mapper.map(this) ;}
 
     @Override
     public boolean equals(Object o) {

@@ -2,6 +2,7 @@ package com.dbmodel;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.utilities.MapperInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,6 +117,8 @@ public class Table {
 
         return prefix.substring(0, prefix.length() - 1);
     }
+
+    public String export(MapperInterface mapper) { return mapper.map(this) ;}
 
     // FQ Name
     public String getFullyQualifiedName() { return String.join(".", database.getFullyQualifiedName(), name); }

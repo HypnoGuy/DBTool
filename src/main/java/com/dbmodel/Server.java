@@ -2,14 +2,11 @@ package com.dbmodel;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mariadb.Connection;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import com.mariadb.Connection;
+import com.utilities.MapperInterface;
+
+import java.util.*;
 
 @JsonIdentityInfo(
         generator = ObjectIdGenerators.PropertyGenerator.class,
@@ -22,7 +19,7 @@ public class Server {
     // Instance Variables
     private HashMap<String,String> globalVariables = new HashMap<String,String>();
     private final Connection connection;
-    private final List<Database> databases = new ArrayList<>();
+    private final Map<String,Database> databases = new HashMap<>();
 
     // Constructor
     public Server(Connection connection, HashMap<String,String> globalVariables) {
@@ -38,35 +35,15 @@ public class Server {
 
     public Connection getConnection() { return connection; }
 
-    public List<Database> getDatabases() { return databases; }
-    protected void addDatabase(Database database) { databases.add(database); }
+    public List<Database> getDatabases() { return (new ArrayList<>(databases.values())); }
+    protected void addDatabase(Database database) { databases.put(database.getName(), database); }
+    public Database getDatabase(String DatabaseName) {  return databases.get(DatabaseName); }
 
-    // Methods
-    public Database getDatabase(String DatabaseName) {
-        Database foundDatabase = null;
-
-        for (Database database : databases) {
-            if (database.getName().equals(DatabaseName)) {
-                foundDatabase = database;
-                break;
-            }
-        }
-
-        return foundDatabase;
-    }
-    public String toJson() {
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            return mapper.writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            // Handle the exception, or rethrow as a RuntimeException
-            e.printStackTrace();
-            return "{}"; // Or some other default value
-        }
-    }
+    public String export(MapperInterface mapper) { return mapper.map(this) ;}
 
     // FQ Name
     public String getFullyQualifiedName() { return getHostName();}
+
 
     // toString, equals and hashCode
     @Override

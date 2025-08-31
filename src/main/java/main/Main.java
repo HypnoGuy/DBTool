@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mariadb.Connection;
 import com.mariadb.SchemaLoader;
+import com.utilities.JSONMapper;
 import com.utilities.TextFileWriter;
 
 public class Main {
@@ -17,7 +18,7 @@ public class Main {
         connection.setUserPasswordEncrypted("ENC(J8WjiCcdUwrMfkxxiV/6UnNOX93ib133oHGjOmzxtzqU1A0V2wnDa5oMfL/fMj30CsZvc6kmzL6dOG4FCOxfvA==)");
         SchemaLoader.LoadSchemaFromConnection(connection);
 
-        String rawJSON = connection.getServer().toJson();
+        String rawJSON = connection.getServer().export(new JSONMapper());
 
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = null;
