@@ -11,9 +11,6 @@ import java.util.List;
         property = "fullyQualifiedName")
 public class ConstraintColumn {
 
-    // Class Variables
-    private static final List<ConstraintColumn> constraintColumns = new ArrayList<>();
-
     // Instance Variables
     private final Constraint constraint;
     private final TableColumn tableColumn;
@@ -23,8 +20,7 @@ public class ConstraintColumn {
         this.constraint = constraint;
         this.tableColumn = tableColumn;
 
-        constraintColumns.add(this);
-        constraint.getColumns().add(this);
+        constraint.addColumn(this);
     }
 
     // FQ Name

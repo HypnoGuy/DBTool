@@ -12,14 +12,11 @@ import java.util.Objects;
         property = "fullyQualifiedName")
 public class ForeignKey {
 
-    // Class Variables
-    private static List<ForeignKey> constraints = new ArrayList<>();
-
     // Instance Variables
     private final Table masterTable;
     private Table detailTable = null;
     private final String name;
-    private final List<ForeignKeyColumn> columns = new ArrayList<>();
+    private final List<ForeignKeyColumn> foreignKeyColumns = new ArrayList<>();
 
     // Constructors
     public ForeignKey(Table masterTable, Table detailTable, String name) {
@@ -27,16 +24,17 @@ public class ForeignKey {
         this.detailTable = detailTable;
         this.name = name;
 
-        constraints.add(this);
-        masterTable.getForeignKeys().add(this);
-        detailTable.getForeignKeys().add(this);
+        masterTable.addForeignKey(this);
+        detailTable.addForeignKey(this);
     }
 
     // Getters and Setters
     public Table getMasterTable() { return masterTable; }
     public Table getDetailTable() { return detailTable; }
     public String getName() { return name; }
-    public List<ForeignKeyColumn> getColumns() { return columns; }
+
+    public List<ForeignKeyColumn> getForeignKeyColumns() { return foreignKeyColumns; }
+    protected void addForeignKeyColumn(ForeignKeyColumn foreignKeyColumn) { foreignKeyColumns.add(foreignKeyColumn); }
 
     // FQ Name
     public String getFullyQualifiedName() { return String.join(".", masterTable.getFullyQualifiedName(), name); }

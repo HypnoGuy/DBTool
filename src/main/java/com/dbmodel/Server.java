@@ -37,7 +37,9 @@ public class Server {
     public String getProductVersion() { return globalVariables.get("VERSION"); }
 
     public Connection getConnection() { return connection; }
+
     public List<Database> getDatabases() { return databases; }
+    protected void addDatabase(Database database) { databases.add(database); }
 
     // Methods
     public Database getDatabase(String DatabaseName) {

@@ -12,9 +12,6 @@ import java.util.Objects;
         property = "fullyQualifiedName")
 public class TableColumn {
 
-    // Class variables
-    private static List<TableColumn> tableColumns = new ArrayList<>();
-
     // Instance Variables
     private final Table table;
     private final String name;
@@ -65,8 +62,7 @@ public class TableColumn {
         this.characterSetName = characterSetName;
         this.collationName = collationName;
 
-        tableColumns.add(this);
-        table.getColumns().add(this);
+        table.addColumn(this);
     }
 
     // Getters and Setters

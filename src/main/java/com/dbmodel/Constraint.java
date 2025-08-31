@@ -12,9 +12,6 @@ import java.util.Objects;
         property = "fullyQualifiedName")
 public class Constraint {
 
-    // Class Variables
-    private static List<Constraint> constraints = new ArrayList<>();
-
     // Instance Variables
     private final Table constraintTable;
     private final String name;
@@ -27,15 +24,16 @@ public class Constraint {
         this.name = name;
         this.constraintType = constraintType;
 
-        constraints.add(this);
-        constraintTable.getConstraints().add(this);
+        constraintTable.addConstraint(this);
     }
 
     // Getters and Setters
     public Table getConstraintTable() { return constraintTable; }
     public String getName() { return name; }
     public String getConstraintType() { return constraintType; }
+
     public List<ConstraintColumn> getColumns() { return columns; }
+    protected void addColumn(ConstraintColumn constraintColumn) { columns.add(constraintColumn); }
 
     // FQ Name
     public String getFullyQualifiedName() { return String.join(".", constraintTable.getFullyQualifiedName(), name); }

@@ -15,9 +15,6 @@ import java.util.Objects;
         property = "fullyQualifiedName")
 public class Database {
 
-    // Class Variables and Methods
-    private static final List<Database> databases = new ArrayList<>();
-
     // Instance Variables
     private final Server server;
     private final String name;
@@ -34,8 +31,7 @@ public class Database {
         this.collationName = collationName;
         this.server = server;
 
-        databases.add(this);
-        this.server.getDatabases().add(this);
+        this.server.addDatabase(this);
     }
 
     // Setters and Getters
@@ -44,7 +40,10 @@ public class Database {
     public String getCollationName() { return collationName; }
 
     public List<Table> getTables() { return tables; }
+    protected void addTable(Table table) { tables.add(table); }
+
     public List<View> getViews() { return views; }
+    protected void addView(View view) { views.add(view); }
 
     // Methods
     public boolean hasTable(String tableName) {

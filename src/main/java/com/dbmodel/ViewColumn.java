@@ -13,9 +13,6 @@ import java.util.Objects;
 
 public class ViewColumn {
 
-    // Class variables
-    private static List<ViewColumn> viewColumns = new ArrayList<ViewColumn>();
-
     // Instance Variables
     private final View view;
     private final String name;
@@ -28,8 +25,7 @@ public class ViewColumn {
         this.view = view;
         this.name = name;
 
-        viewColumns.add(this);
-        view.getColumns().add(this);
+        view.addViewColumn(this);
     }
 
     // Getters and Setters

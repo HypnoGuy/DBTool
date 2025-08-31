@@ -11,9 +11,6 @@ import java.util.List;
         property = "fullyQualifiedName")
 public class ForeignKeyColumn {
 
-    // Class Variables
-    private static final List<ForeignKeyColumn> foreignKeyColumns = new ArrayList<>();
-
     // Instance Variables
     private final ForeignKey foreignKey;
     private final TableColumn masterTableColumn;
@@ -25,16 +22,14 @@ public class ForeignKeyColumn {
         this.masterTableColumn = masterTableColumn;
         this.detailTableColumn = detailTableColumn;
 
-        foreignKeyColumns.add(this);
-        foreignKey.getColumns().add(this);
+        foreignKey.addForeignKeyColumn(this);
     }
 
     public ForeignKeyColumn(ForeignKey foreignKey, TableColumn tableColumn) {
         this.foreignKey = foreignKey;
         this.masterTableColumn = tableColumn;
 
-        foreignKeyColumns.add(this);
-        foreignKey.getColumns().add(this);
+        foreignKey.addForeignKeyColumn(this);
     }
 
     // Setters and Getters

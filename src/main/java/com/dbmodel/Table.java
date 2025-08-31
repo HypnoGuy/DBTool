@@ -12,9 +12,6 @@ import java.util.Objects;
         property = "fullyQualifiedName")
 public class Table {
 
-    // Class Variables
-    private static final List<Table> tables = new ArrayList<>();
-
     // Instance Variables
     private Database database;
     private final String name;
@@ -29,19 +26,16 @@ public class Table {
         this.name = name;
         this.collationName = collationName;
 
-        tables.add(this);
-        database.getTables().add(this);
+        database.addTable(this);
     }
 
     // Getters and Setters
     public Database getDatabase() { return database; }
     public String getName() { return name; }
     public String getCollationName() { return collationName; }
-    public List<TableColumn> getColumns() { return tableColumns; }
-    public List<Constraint> getConstraints() { return constraints; }
-    public List<ForeignKey> getForeignKeys() { return foreignKeys; }
 
-    // Methods
+    public List<TableColumn> getColumns() { return tableColumns; }
+    protected void addColumn(TableColumn column) { tableColumns.add(column); }
     public TableColumn getColumn(String columnName) {
         TableColumn foundTableColumn = null;
 
@@ -54,6 +48,9 @@ public class Table {
 
         return foundTableColumn;
     }
+
+    public List<Constraint> getConstraints() { return constraints; }
+    protected void addConstraint(Constraint constraint) { constraints.add(constraint); }
     public Constraint getConstraint(String constraintName) {
         Constraint foundConstraint = null;
 
@@ -66,6 +63,9 @@ public class Table {
 
         return foundConstraint;
     }
+
+    public List<ForeignKey> getForeignKeys() { return foreignKeys; }
+    protected void addForeignKey(ForeignKey foreignKey) { foreignKeys.add(foreignKey); }
     public ForeignKey getForeignKey(String foreignKeyName) {
         ForeignKey foundForeignKey = null;
 
@@ -78,6 +78,7 @@ public class Table {
 
         return foundForeignKey;
     }
+
     public byte getMaxColumnNameLength() {
 
         byte maxColumnNameLength = 0;

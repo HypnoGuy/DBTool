@@ -12,9 +12,6 @@ import java.util.Objects;
         property = "fullyQualifiedName")
 public class View {
 
-    // Class Variables
-    private static final List<View> views = new ArrayList<>();
-
     // Instance Variables
     private Database database;
     private final String name;
@@ -25,14 +22,14 @@ public class View {
         this.database = database;
         this.name = name;
 
-        views.add(this);
-        database.getViews().add(this);
+        database.addView(this);
     }
 
     // Getters and Setters
-    public List<View> getViews() { return views; }
     public String getName() { return name; }
+
     public List<ViewColumn> getColumns() { return viewColumns; }
+    protected void addViewColumn(ViewColumn viewColumn) { viewColumns.add(viewColumn); }
 
     // FQ Name
     public String getFullyQualifiedName() { return String.join(".", database.getFullyQualifiedName(), name); }
